@@ -1,0 +1,35 @@
+version: '2'
+
+services:
+  db_publisher:
+    container_name: db_publisher
+    restart: always
+    build: publisher/.
+    ports:
+      - 25432:5432
+    volumes:
+      - ./publisher/publisher.sql:/docker-entrypoint-initdb.d/db_setup.sql
+    env_file:
+      - variables.env
+    networks:
+      - multiservernet
+
+  db_subscriber:
+    container_name: db_subscriber
+    restart: always
+    image: postgres:12.6
+    build: subscriber/.
+    depends_on:
+      - db_publisher
+    ports:
+      - 25433:5432
+    volumes:
+      - ./subscriber/subscriber.sql:/docker-entrypoint-initdb.d/db_setup.sql
+    env_file:
+      - variables.env
+    networks:
+      - multiservernet
+
+networks:
+  multiservernet:
+    driver: bridge
